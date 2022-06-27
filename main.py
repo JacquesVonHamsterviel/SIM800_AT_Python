@@ -6,7 +6,8 @@ import time
 from _thread import *
 from urllib.parse import MAX_CACHE_SIZE
 import serial
-from idna import unicode 
+#from idna import unicode 
+import idna
 import telepot
 from phone import Phone
 import traceback
@@ -278,7 +279,6 @@ def common_input(strx):
 en_uni=(" ","!","\"","#","$","%","&","'","(",")","*","+",",","-",".","/","0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?","@","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","[","\\","]","^","_","`","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","{","|","}","~")
 record_sms_phonenum=[] #存储已发送提示消息的手机号，避免重复发送，浪费话费。
 findphone  = Phone()
-ser=serial.Serial(serialPort,baudRate,timeout=0.5) 
 msg_in_receiving=False #短信是否完全接收完毕
 msg_in_sending=False #短信是否在发送
 schedule_reconnect=time.time() #初始化时间
@@ -318,6 +318,7 @@ except:
     print('读取配置文件出错！')
     sys.exit()
 
+ser=serial.Serial(serialPort,baudRate,timeout=0.5) 
 log("LOG","Program Starts")
 log("LOG","参数设置：串口=%s ，波特率=%d"%(serialPort,baudRate)) #输出串口号和波特率
 
