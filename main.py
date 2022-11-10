@@ -86,7 +86,7 @@ def tg_send(tg_type,tg_str):
     global tg_send_enable
     if tg_send_enable==True:
         try:
-            bot.sendMessage(chat_id=tg_chat_id, text="【{}】{} {}".format(str(tg_type),standard_time(),tg_str))
+            bot.sendMessage(chat_id=tg_chat_id,text="【{}】{} {}".format(str(tg_type),standard_time(),tg_str))
             log("LOG_TG","【{}】【{}】{}".format(tg_type,standard_time(),tg_str))
             return True
         except Exception as ex:
@@ -274,6 +274,15 @@ def common_input(strx):
          finally:
               time.sleep(3)
 
+def call(num):
+    ser.write('atd{};'.format(str(num)).encode('utf-8') + b'\r\n')
+
+def call10086():
+    log("CALL","Start To Call 10086")
+    ser.write('atd10086;'.encode('utf-8') + b'\r\n')
+    time.timeout(20)
+    log("CALL","Stop Communication with 10086")
+
 
 #内置常量
 en_uni=(" ","!","\"","#","$","%","&","'","(",")","*","+",",","-",".","/","0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?","@","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","[","\\","]","^","_","`","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","{","|","}","~")
@@ -284,39 +293,131 @@ msg_in_sending=False #短信是否在发送
 schedule_reconnect=time.time() #初始化时间
 error_count=1 #初始错误次数值
 tg_last_read_id=0
+flag_return=False
+version="2022-06-27"
 
 #读取配置文件
-try:  
+try: 
     if len(sys.argv)<=1:
-        print("缺少参数，参数是配置文件（必填）")  
+        print("Argument Required! Use 'help' to get help")
+        flag_return=True
         sys.exit()
+    #elif len(sys.argv)>2:
+    #    print("Too Many Arguments! Use 'help' to get help")
+    #    flag_return=True
+    #    sys.exit()
     cf=configparser.ConfigParser()
     cf.read(sys.argv[1])
-    current_phonenum=cf.get('main','current_phonenum')
-    max_error_count=cf.getint('main','max_error_count')
+    if sys.argv[1]=='debug-serial':
+        print("mode: debug-serial")
+        serialPort=input("Port: ")
+        baudRate=115200         
+        ser=serial.Serial(serialPort,baudRate,timeout=0.5) 
+        print("参数设置：串口=%s ，波特率=%d, Use ## to send exit signal"%(serialPort,baudRate))#输出串口号和波特率
+        while True:
+            try:
+                res=ser.readline()
+                if res==b'':
+                    time.sleep(0.1)
+                    i_input=input("Command: ")
+                    if i_input=="##":
+                        command_variable = chr(26)
+                        ser.write(command_variable.encode('utf-8'))
+                    else:      
+                        ser.write(i_input.encode('utf-8') + b'\r\n')
+                else:
+                    print(res)
+                    i_input=input("Command: ")
+                    if i_input=="##":
+                        command_variable = chr(26)
+                        ser.write(command_variable.encode('utf-8'))
+                    else:      
+                        ser.write(i_input.encode('utf-8') + b'\r\n')
+            
+            except KeyboardInterrupt:
+                break
+                
+            #except Exception as ex:    
+            #     print(ex)
+            #     pass
+                
+            except:
+                print("【Log】Something else went wrong")
+            
+        ser.close()
+        flag_return=True
+        sys.exit()
+    elif sys.argv[1]=='phoneinfo':
+        print("mode: phoneinfo")
+        findphone  = Phone()
+        print(phoneinfo(input("PhoneNum: ")))
+        flag_return=True
+        sys.exit()
+    elif sys.argv[1]=='help':
+        print("Help\n1. debug-serial\n2. phoneinfo\n3. ver\nElse: Seen as path of config file")
+        flag_return=True
+        sys.exit()
+    elif sys.argv[1]=='ver':
+        print("Py_AT\nVersion: {}".format(version))
+        flag_return=True
+        sys.exit()
+    else:
+        current_phonenum=cf.get('main','current_phonenum')
+        max_error_count=cf.getint('main','max_error_count')
 
-    serialPort=cf.get('port','serialPort')
-    baudRate=cf.getint('port','baudRate')
-    schedule_reconnect_max=cf.getfloat('port','schedule_reconnect_max')
+        serialPort=cf.get('port','serialPort')
+        baudRate=cf.getint('port','baudRate')
+        schedule_reconnect_max=cf.getfloat('port','schedule_reconnect_max')
 
-    sms_send_allow=cf.getboolean('sms','sms_send_allow')
-    sms_auto_send=cf.getboolean('sms','sms_auto_send')
-    sms_limit=cf.getint('sms','sms_limit')
-    sms_auto_send_content=cf.get('sms','sms_auto_send_content')
+        sms_send_allow=cf.getboolean('sms','sms_send_allow')
+        sms_auto_send=cf.getboolean('sms','sms_auto_send')
+        sms_limit=cf.getint('sms','sms_limit')
+        sms_auto_send_content=cf.get('sms','sms_auto_send_content')
 
-    current_phonenum_log=cf.getboolean('log','current_phonenum_log')
+        current_phonenum_log=cf.getboolean('log','current_phonenum_log')
 
-    tg_send_enable=cf.getboolean('telegram','tg_send_enable')
-    tg_receive_enable=cf.getboolean('telegram','tg_receive_enable')
-    bot = telepot.Bot(cf.get('telegram','bot'))
-    tg_chat_id=cf.get('telegram','tg_chat_id')
-    current_phonenum_tg=cf.getboolean('telegram','current_phonenum_tg')
-    tg_read_period=cf.getint('telegram','tg_read_period')
-    tg_last_read_id=cf.getint('telegram','tg_last_read_id')
-    common_input_function=cf.getboolean('common_input','common_input_function')
+        tg_send_enable=cf.getboolean('telegram','tg_send_enable')
+        tg_receive_enable=cf.getboolean('telegram','tg_receive_enable')
+        bot = telepot.Bot(cf.get('telegram','bot'))
+        if cf.getboolean('proxy','enable_proxy')==True:
+            if cf.getboolean('proxy','auth')==True:
+                telepot.api.set_proxy(cf.get('proxy','url'), basic_auth=(cf.get('proxy','username'),cf.get('proxy','password')))
+            else:
+                telepot.api.set_proxy(cf.get('proxy','url'), basic_auth=None)
+        tg_chat_id=cf.get('telegram','tg_chat_id')
+        current_phonenum_tg=cf.getboolean('telegram','current_phonenum_tg')
+        tg_read_period=cf.getint('telegram','tg_read_period')
+        tg_last_read_id=cf.getint('telegram','tg_last_read_id')
+        common_input_function=cf.getboolean('common_input','common_input_function')
 except:
-    print('读取配置文件出错！')
-    sys.exit()
+    if flag_return==True:
+        sys.exit()
+    elif sys.argv[1]=='telegram':
+        if len(sys.argv)<3:
+            print("Config File Required!")
+            sys.exit()
+        else:
+            cf=configparser.ConfigParser()
+            cf.read(sys.argv[2])
+            tg_send_enable=cf.getboolean('telegram','tg_send_enable')
+            tg_receive_enable=cf.getboolean('telegram','tg_receive_enable')
+            bot = telepot.Bot(cf.get('telegram','bot'))
+            if cf.getboolean('proxy','enable_proxy')==True:
+                if cf.getboolean('proxy','auth')==True:
+                    telepot.api.set_proxy(cf.get('proxy','url'), basic_auth=(cf.get('proxy','username'),cf.get('proxy','password')))
+                else:
+                    telepot.api.set_proxy(cf.get('proxy','url'), basic_auth=None)
+            tg_chat_id=cf.get('telegram','tg_chat_id')
+            current_phonenum_tg=cf.getboolean('telegram','current_phonenum_tg')
+            tg_read_period=cf.getint('telegram','tg_read_period')
+            tg_last_read_id=cf.getint('telegram','tg_last_read_id')
+            while True:
+                tg_send("系统",input("发送消息： "))
+            sys.exit()
+    else:
+        print('读取配置文件出错！')
+        sys.exit()
+    
 
 ser=serial.Serial(serialPort,baudRate,timeout=0.5) 
 log("LOG","Program Starts")
@@ -357,7 +458,12 @@ while True:
                  #开始读取短信
                  re_phonenum=re.compile(r'\d{5,}')
                  re_time=re.compile(r'\d{1,2}/\d{1,2}/\d{1,2},\d{1,2}:\d{1,2}:\d{1,2}')
-                 msg_phonenum=re_phonenum.search(str(res))[0]
+
+                 if len(re_phonenum.search(str(res))[0])>24:
+                     msg_phonenum=DecodeUnicode(re_phonenum.search(str(res))[0])
+                 else:
+                     msg_phonenum=re_phonenum.search(str(res))[0]
+                     
                  msg_time=re_time.search(str(res))[0]
                  msg_in_receiving=True
                  continue
