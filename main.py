@@ -79,7 +79,7 @@ def log(log_type,log_str):
     print("【{}】【{}】{}".format(log_type,standard_time(),log_str))
     filename=str(log_type) + "_" + str(time.strftime("%Y-%m-%d",time.localtime())) + ".txt"
     with open("log/"+filename, 'a+') as f:
-        f.write("【{}】【{}】{}\n".format(str(log_type),standard_time(),log_str.encode()))
+        f.write("【{}】【{}】{}\n".format(str(log_type),standard_time(),log_str))
     return True
 
 def tg_send(tg_type,tg_str):

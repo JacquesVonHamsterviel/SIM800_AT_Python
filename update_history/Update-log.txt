@@ -28,4 +28,4 @@ Jun-25：1. 使用配置文件，无需修改代码，方便复用。
 
 Sep-10: Bug Fix.
 
-Nov-10: Rewrite Telegram Function. Custom Telegram API address.
+Nov-10: a. b. Rewrite Telegram Function. Custom Telegram API address. c. Fix encoding error in log function.
