@@ -1,4 +1,5 @@
 import requests
+import time
 
 class tg_bot(object):
     def __init__(self, tg_api_base_link,bot_id):
@@ -15,7 +16,7 @@ class tg_bot(object):
             except Exception as ex:
                 error+=1
                 print(ex)
-                time.sleep(0.5)
+                time.sleep(5)
     def sendMessage(self,chat_id,text):
         error=0
         while True:
@@ -27,4 +28,7 @@ class tg_bot(object):
             except Exception as ex:
                 error+=1
                 print(ex)
-                time.sleep(0.5)
+                time.sleep(5)
+#bot=tg_bot("https://api-tg.kkk.plus","5539741723:AAH45p8WwlKpE_SV6zhyaS7jiwudm4K5ndU")
+#print(bot.getUpdates())
+#print(bot.sendMessage("-1001636319740","TEST"))
