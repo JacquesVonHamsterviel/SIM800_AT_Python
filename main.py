@@ -8,9 +8,9 @@ from urllib.parse import MAX_CACHE_SIZE
 import serial
 #from idna import unicode 
 import idna
-import telepot
 from phone import Phone
 import traceback
+from telegram import tg_bot
 
 def at_initialize():
     log("LOG","AT_initializing...")
@@ -378,7 +378,8 @@ try:
 
         tg_send_enable=cf.getboolean('telegram','tg_send_enable')
         tg_receive_enable=cf.getboolean('telegram','tg_receive_enable')
-        bot = telepot.Bot(cf.get('telegram','bot'))
+        bot = tg_bot(cf.get('telegram','tg_api_base_link'),cf.get('telegram','bot'))
+        
         if cf.getboolean('proxy','enable_proxy')==True:
             if cf.getboolean('proxy','auth')==True:
                 telepot.api.set_proxy(cf.get('proxy','url'), basic_auth=(cf.get('proxy','username'),cf.get('proxy','password')))
