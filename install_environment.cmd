@@ -3,18 +3,9 @@
 echo Press Any Key To Start Environment Installation...
 pause
 
-pip install pyserial
-pip install telepot
-pip install phone
-pip install configparser
-pip install idna
+python -m venv venv
 
-pip3 install pyserial
-pip3 install telepot
-pip3 install phone
-pip3 install configparser
-pip3 install idna
+cmd /k "call venv/scripts/activate.bat & pip install -r requirements.txt & call venv/scripts/deactivate.bat & echo Finish! & pause & exit"
 
-echo Finish!
-pause
-exit
+
+
