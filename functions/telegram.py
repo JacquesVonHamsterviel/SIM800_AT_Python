@@ -33,6 +33,3 @@ class tg_bot(object):
                 #print(ex)
                 log("LOG_TG","【Error】{}".format(str(ex)))
                 time.sleep(5)
-#bot=tg_bot("https://api-tg.kkk.plus","5539741723:AAH45p8WwlKpE_SV6zhyaS7jiwudm4K5ndU")
-#print(bot.getUpdates())
-#print(bot.sendMessage("-1001636319740","TEST"))
