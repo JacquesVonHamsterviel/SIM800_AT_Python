@@ -29,3 +29,7 @@ Jun-25：1. 使用配置文件，无需修改代码，方便复用。
 Sep-10: Bug Fix.
 
 Nov-10: a. b. Rewrite Telegram Function. Custom Telegram API address. c. Fix encoding error in log function.
+
+!!! Nov-12开始，所有的更新会以release的方式呈现，不仅仅把主要代码集中在main.py里面。
+
+Nov-12: a. 尝试最新更新方法，将main拆分成模块，方便后期修改。 初始化Web功能，虽然有telegram，Web的开发没那么重要了。

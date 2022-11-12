@@ -6,81 +6,15 @@ import time
 from _thread import *
 from urllib.parse import MAX_CACHE_SIZE
 import serial
-#from idna import unicode 
 import idna
-from phone import Phone
+
 import traceback
-from telegram import tg_bot
 
-def at_initialize():
-    log("LOG","AT_initializing...")
-    ser.write('AT'.encode('utf-8') + b'\r\n');time.sleep(1);print(ser.readline()) #No Response without this
-    ser.write('ATE0'.encode('utf-8') + b'\r\n');time.sleep(1);print(ser.readline())  #echo off
-    ser.write('AT+CPIN?'.encode('utf-8') + b'\r\n') #SIM Card In?
-    ser.write('AT+CLIP=1'.encode('utf-8') + b'\r\n');time.sleep(1);print(ser.readline()) #显示来电号码，如果没有这条指令，则来电话模块只送出ring，不送出号码
-    ser.write('AT+CMGF=1'.encode('utf-8') + b'\r\n')
-    #ser.write('AT+CIMI'.encode('utf-8') + b'\r\n');time.sleep(1);print(ser.readline()) #读取IMSI
-    #ser.write('AT+CCID'.encode('utf-8') + b'\r\n');time.sleep(1);print(ser.readline()) #读取ICCID号
-    #ser.write('AT+CPBS="ON"'.encode('utf-8') + b'\r\n');time.sleep(1);print(ser.readline()) #将电话存贮位置选择为本机号码列表
-    #ser.write('AT+CPBW=1'.encode('utf-8') + b'\r\n');time.sleep(1);print(ser.readline()) #储存本机号码
-    #ser.write('AT+CNUM'.encode('utf-8') + b'\r\n');time.sleep(1);print(ser.readline()) #读取本机号码
-    return True
-
-def standard_sim_time():
-    return str(" "+time.strftime("%y/%m/%d,%H:%M:%S", time.localtime())+" " )
-
-def standard_time():
-    return str(" "+time.strftime("%Y-%m-%d,%H:%M:%S", time.localtime())+" " )
-
-def DecodeUnicode(str):
-    i=0
-    res=""
-    if len(str)%4==0 and len(str)>6: #unicode需要可以被4整除
-        if str.upper()==str: #全是大写字母才算短信的unicode，而且不能是纯数字
-             while i<len(str)/4:
-                 res=res+"\\u"+str[4*i:4*i+4].lower()
-                 i+=1
-             try:    
-                 res=res.encode('utf-8').decode('unicode_escape')
-                 return(res)
-             except:
-                 return(str)
-        else:
-             return(str)
-    else:
-        return(str)
-   
-def EncodeUnicode(text):
-     res=""
-     for i in text:
-          if str(i.encode("unicode_escape"))[2:-1]==i:
-               res=res+"00"+str(i.encode("unicode_escape").hex())
-          else:
-               res=res+str(i.encode("unicode_escape"))[5:-1]
-     res=res.upper()
-     return(res)
-
-def phoneinfo(num):#归属地查询-支持7-11位手机号   
-    try:
-        if num.isdigit()==True and 7<=len(num)<=11:
-             num=str(num)
-             j=findphone.find(num)
-             if j==None:
-                 return(["Error","No Info Found"])
-             else:
-                 res=["Success",j["province"]+j["city"]+" "+j["phone_type"]]
-                 return(res)
-        else:
-             return(["Error","Not Digital or not in length from 7 to 11"])
-    except Exception as ex:
-            return(["Error",str(ex)])
-
-def log(log_type,log_str):
-    print("【{}】【{}】{}".format(log_type,standard_time(),log_str))
-    filename=str(log_type) + "_" + str(time.strftime("%Y-%m-%d",time.localtime())) + ".txt"
-    with open("log/"+filename, 'a+') as f:
-        f.write("【{}】【{}】{}\n".format(str(log_type),standard_time(),log_str))
-    return True
+from functions.telegram import *
+from functions.standard_time import *
+from functions.unicode import *
+from functions.phoneinfo import *
+from functions.output import *
 
 def tg_send(tg_type,tg_str):
     global tg_send_enable
@@ -95,12 +29,21 @@ def tg_send(tg_type,tg_str):
     else:
         log("LOG_TG","【Error】Telegram send not enable")
         return False
-
-def html(html_type,html_str):
-    filename=str(html_type) + "_" + str(time.strftime("%Y-%m-%d",time.localtime())) + ".html"
-    with open("html/"+filename, 'a+') as f:
-        #f.write("<tr><td>{}</td><td>【{}】{}</td></tr>\n".format(standard_time(),html_type,html_str))
-        f.write("{} 【{}】{}<br>\n".format(standard_time(),html_type,html_str))
+        
+        
+def at_initialize():
+    log("LOG","AT_initializing...")
+    ser.write('AT'.encode('utf-8') + b'\r\n');time.sleep(1);print(ser.readline()) #No Response without this
+    ser.write('ATE0'.encode('utf-8') + b'\r\n');time.sleep(1);print(ser.readline())  #echo off
+    ser.write('AT+CPIN?'.encode('utf-8') + b'\r\n') #SIM Card In?
+    ser.write('AT+CLIP=1'.encode('utf-8') + b'\r\n');time.sleep(1);print(ser.readline()) #显示来电号码，如果没有这条指令，则来电话模块只送出ring，不送出号码
+    ser.write('AT+CMGF=1'.encode('utf-8') + b'\r\n')
+    #ser.write('AT+CIMI'.encode('utf-8') + b'\r\n');time.sleep(1);print(ser.readline()) #读取IMSI
+    #ser.write('AT+CCID'.encode('utf-8') + b'\r\n');time.sleep(1);print(ser.readline()) #读取ICCID号
+    #ser.write('AT+CPBS="ON"'.encode('utf-8') + b'\r\n');time.sleep(1);print(ser.readline()) #将电话存贮位置选择为本机号码列表
+    #ser.write('AT+CPBW=1'.encode('utf-8') + b'\r\n');time.sleep(1);print(ser.readline()) #储存本机号码
+    #ser.write('AT+CNUM'.encode('utf-8') + b'\r\n');time.sleep(1);print(ser.readline()) #读取本机号码
+    return True
 
 def at_send_en_message(phonenum,text):
     global msg_in_sending
@@ -287,7 +230,7 @@ def call10086():
 #内置常量
 en_uni=(" ","!","\"","#","$","%","&","'","(",")","*","+",",","-",".","/","0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?","@","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","[","\\","]","^","_","`","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","{","|","}","~")
 record_sms_phonenum=[] #存储已发送提示消息的手机号，避免重复发送，浪费话费。
-findphone  = Phone()
+
 msg_in_receiving=False #短信是否完全接收完毕
 msg_in_sending=False #短信是否在发送
 schedule_reconnect=time.time() #初始化时间

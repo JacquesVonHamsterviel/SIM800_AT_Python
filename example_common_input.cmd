@@ -1,2 +1,4 @@
 @echo off
-echo sendcn10086###214124184141241241241>common_input.txt
+::echo sendcn12306###666>common_input.txt
+
+echo sendcn95566###QXSJYH>common_input.txt
